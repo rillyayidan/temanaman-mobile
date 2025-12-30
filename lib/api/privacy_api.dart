@@ -26,7 +26,7 @@ class PrivacyPageDto {
 
 class PrivacyApi {
   // Emulator Android Studio
-  static const String baseUrl = "https://temanaman-backend.up.railway.app/";
+  static const String baseUrl = "https://temanaman-backend.up.railway.app";
   final http.Client _client;
   PrivacyApi({http.Client? client}) : _client = client ?? http.Client();
 

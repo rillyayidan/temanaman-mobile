@@ -34,7 +34,7 @@ class HelpContactDto {
 }
 
 class HelpApi {
-  static const String baseUrl = "https://temanaman-backend.up.railway.app/";
+  static const String baseUrl = "https://temanaman-backend.up.railway.app";
   final http.Client _client;
   HelpApi({http.Client? client}) : _client = client ?? http.Client();
 

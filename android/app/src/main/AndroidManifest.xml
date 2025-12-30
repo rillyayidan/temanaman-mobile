@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -24,7 +24,7 @@
 
     <application
         android:usesCleartextTraffic="true"
-        android:label="teman_aman"
+        android:label="TemanAman"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

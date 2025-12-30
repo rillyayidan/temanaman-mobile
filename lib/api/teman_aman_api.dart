@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class TemanAmanApi {
-  static const String baseUrl = "https://temanaman-backend.up.railway.app/";
+  static const String baseUrl = "https://temanaman-backend.up.railway.app";
   final http.Client _client;
   TemanAmanApi({http.Client? client}) : _client = client ?? http.Client();
 

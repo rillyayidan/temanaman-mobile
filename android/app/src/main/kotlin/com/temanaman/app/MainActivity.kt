@@ -1,4 +1,4 @@
-package com.example.teman_aman
+package com.temanaman.app
 
 import io.flutter.embedding.android.FlutterActivity
 
