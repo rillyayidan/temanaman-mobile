@@ -224,11 +224,13 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                                       separatorBuilder: (_, __) => const SizedBox(height: AppTokens.s10),
                                       itemBuilder: (context, i) {
                                         final opt = q!.options[i];
-                                        final label = (opt.label ?? "").trim().isEmpty ? "" : "${opt.label}. ";
+                                        // ✅ Generate label A, B, C, D secara dinamis berdasarkan index
+                                        final labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+                                        final label = i < labels.length ? labels[i] : '';
                                         final selected = selectedOptionId == opt.id;
 
                                         return _OptionCard(
-                                          title: "$label${opt.text}",
+                                          title: "$label. ${opt.text}",
                                           selected: selected,
                                           enabled: !answering,
                                           onTap: () => setState(() => selectedOptionId = opt.id),
@@ -259,8 +261,6 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
     );
   }
 }
-
-// ... sisanya class yang kamu punya tetap sama (ProgressHeader, OptionCard, Dialog, ErrorView, EmptyView)
 
 class _ProgressHeader extends StatelessWidget {
   final int index;
