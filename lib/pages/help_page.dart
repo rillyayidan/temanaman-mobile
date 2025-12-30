@@ -220,7 +220,7 @@ class _HelpPageState extends State<HelpPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Direktori Bantuan"),
+        title: const Text("Layanan Bantuan"),
         actions: [
           IconButton(
             tooltip: "Refresh",
@@ -503,7 +503,7 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppTokens.s12),
             Text(
-              "Gagal memuat direktori",
+              "Gagal memuat layanan bantuan",
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppTokens.s6),
