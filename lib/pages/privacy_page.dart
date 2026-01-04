@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../api/privacy_api.dart';
 import '../ui/app_tokens.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 class PrivacyPage extends StatefulWidget {
   final String code; // privacy_policy / ai_disclaimer / terms
@@ -167,12 +168,27 @@ class _PrivacyPageState extends State<PrivacyPage> {
                                   color: scheme.outlineVariant.withOpacity(0.65),
                                 ),
                               ),
-                              child: Text(
-                                page!.body,
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      height: 1.55,
+                              child: Html(
+                                data: page!.body,
+                                style: {
+                                  "body": Style(
+                                    margin: Margins.zero,
+                                    padding: HtmlPaddings.zero,
+                                    fontSize: FontSize(
+                                      Theme.of(context).textTheme.bodyLarge?.fontSize ?? 14,
                                     ),
+                                    lineHeight: const LineHeight(1.55),
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                  "p": Style(
+                                    margin: Margins.only(bottom: 12),
+                                  ),
+                                  "li": Style(
+                                    margin: Margins.only(bottom: 8),
+                                  ),
+                                },
                               ),
+
                             ),
                             const SizedBox(height: AppTokens.s24),
                           ],
