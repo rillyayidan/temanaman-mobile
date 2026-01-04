@@ -439,14 +439,33 @@ class _ChatBubble extends StatelessWidget {
                               color: fg,
                               height: 1.32,
                             ),
-                        a: TextStyle(
-                          color: scheme.primary,
-                          decoration: TextDecoration.underline,
-                        ),
+
                         strong: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: fg,
                         ),
+
+                        a: TextStyle(
+                          color: scheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+
+                        // 🔥 FIX BLOCKQUOTE
+                        blockquoteDecoration: BoxDecoration(
+                          color: scheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border(
+                            left: BorderSide(
+                              color: scheme.primary,
+                              width: 4,
+                            ),
+                          ),
+                        ),
+
+                        blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurface,
+                              height: 1.35,
+                            ),
                       ),
                     ),
         ),
