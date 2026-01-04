@@ -348,16 +348,40 @@ class _ChatBubble extends StatelessWidget {
                           color: fg,
                           height: 1.32,
                         ),
+
                     strong: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: fg,
                     ),
+
                     em: TextStyle(
                       fontStyle: FontStyle.italic,
                       color: fg,
                     ),
+
+                    // INI YANG PENTING
+                    blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: fg,
+                          height: 1.32,
+                        ),
+
+                    blockquotePadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+
+                    blockquoteDecoration: BoxDecoration(
+                      color: scheme.surface.withOpacity(0.6), // aman di dark & light
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border(
+                        left: BorderSide(
+                          color: scheme.primary,
+                          width: 3,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                )
         ),
       ),
     );
