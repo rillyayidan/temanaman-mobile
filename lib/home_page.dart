@@ -33,6 +33,28 @@ class _HomePageState extends State<HomePage> {
     setState(() => userKey = key);
   }
 
+  Future<bool> _confirmExit(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Keluar aplikasi?"),
+        content: const Text("Kamu yakin ingin keluar dari TemanAman?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Keluar"),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -49,8 +71,8 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   "Menyiapkan identitas pengguna…",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -68,9 +90,7 @@ class _HomePageState extends State<HomePage> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => ChatPage(userKey: userKey!),
-            ),
+            MaterialPageRoute(builder: (_) => ChatPage(userKey: userKey!)),
           );
         },
       ),
@@ -81,9 +101,7 @@ class _HomePageState extends State<HomePage> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const EducationCategoriesPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const EducationCategoriesPage()),
           );
         },
       ),
@@ -107,9 +125,7 @@ class _HomePageState extends State<HomePage> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const HelpPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const HelpPage()),
           );
         },
       ),
@@ -120,84 +136,87 @@ class _HomePageState extends State<HomePage> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const PrivacyPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const PrivacyPage()),
           );
         },
       ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("TemanAman"),
-        actions: [
-          IconButton(
-            tooltip: "Reload user identity",
-            onPressed: () async {
-              await _loadUserKey();
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("User identity reloaded")),
-              );
-            },
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadUserKey,
-          child: LayoutBuilder(
-            builder: (context, c) {
-              final width = c.maxWidth;
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
 
-              // Responsif: 2 kolom untuk HP normal, 3 kolom kalau lebar.
-              final crossAxisCount = width >= 520 ? 3 : 2;
+        final shouldExit = await _confirmExit(context);
+        if (shouldExit && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("TemanAman"),
+          actions: [
+            IconButton(
+              tooltip: "Reload user identity",
+              onPressed: () async {
+                await _loadUserKey();
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("User identity reloaded")),
+                );
+              },
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: _loadUserKey,
+            child: LayoutBuilder(
+              builder: (context, c) {
+                final width = c.maxWidth;
+                final crossAxisCount = width >= 520 ? 3 : 2;
+                final childAspectRatio = crossAxisCount == 3 ? 1.20 : 1.12;
 
-              // Aspect ratio supaya card tidak terlalu pendek
-              final childAspectRatio = crossAxisCount == 3 ? 1.20 : 1.12;
-
-              return ListView(
-                padding: AppTokens.listPadding,
-                children: [
-                  Text(
-                    "Halo!",
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: AppTokens.s6),
-                  Text(
-                    "Pilih fitur yang kamu butuhkan. Kamu bisa mulai dari Chat AI atau coba Kuis untuk level up.",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: AppTokens.s16),
-
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: AppTokens.s12,
-                      mainAxisSpacing: AppTokens.s12,
-                      childAspectRatio: childAspectRatio,
+                return ListView(
+                  padding: AppTokens.listPadding,
+                  children: [
+                    Text(
+                      "Halo!",
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    itemBuilder: (context, i) => _HomeCard(item: items[i]),
-                  ),
-
-                  if (kDebugMode) ...[
-                    const SizedBox(height: AppTokens.s18),
-                    _MiniInfoCard(
-                      icon: Icons.fingerprint,
-                      title: "UserKey (debug)",
-                      value: userKey!,
+                    const SizedBox(height: AppTokens.s6),
+                    Text(
+                      "Pilih fitur yang kamu butuhkan. Kamu bisa mulai dari Chat AI atau coba Kuis untuk level up.",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
+                    const SizedBox(height: AppTokens.s16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: items.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: AppTokens.s12,
+                        mainAxisSpacing: AppTokens.s12,
+                        childAspectRatio: childAspectRatio,
+                      ),
+                      itemBuilder: (context, i) => _HomeCard(item: items[i]),
+                    ),
+                    if (kDebugMode) ...[
+                      const SizedBox(height: AppTokens.s18),
+                      _MiniInfoCard(
+                        icon: Icons.fingerprint,
+                        title: "UserKey (debug)",
+                        value: userKey!,
+                      ),
+                    ],
                   ],
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -229,7 +248,9 @@ class _HomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    final bg = item.isPrimary ? scheme.primaryContainer : scheme.surfaceContainerHighest;
+    final bg = item.isPrimary
+        ? scheme.primaryContainer
+        : scheme.surfaceContainerHighest;
     final fg = item.isPrimary ? scheme.onPrimaryContainer : scheme.onSurface;
 
     return Material(
@@ -246,20 +267,25 @@ class _HomeCard extends StatelessWidget {
               _IconBadge(
                 icon: item.icon,
                 foreground: fg,
-                background: scheme.surface.withOpacity(item.isPrimary ? 0.35 : 0.65),
+                background: scheme.surface.withOpacity(
+                  item.isPrimary ? 0.35 : 0.65,
+                ),
               ),
               const Spacer(),
               Text(
                 item.title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: fg),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: fg),
               ),
               const SizedBox(height: AppTokens.s6),
               Text(
                 item.subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: (item.isPrimary ? fg : scheme.onSurfaceVariant).withOpacity(0.95),
-                      height: 1.25,
-                    ),
+                  color: (item.isPrimary ? fg : scheme.onSurfaceVariant)
+                      .withOpacity(0.95),
+                  height: 1.25,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -324,8 +350,8 @@ class _MiniInfoCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppTokens.s4),
                   Text(
