@@ -147,11 +147,16 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // 1️⃣ JUDUL
                             Text(
                               data!.title,
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: AppTokens.s10),
+
+                            // 2️⃣ META (tanggal)
                             Wrap(
                               spacing: AppTokens.s8,
                               runSpacing: AppTokens.s8,
@@ -163,26 +168,38 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
                                   ),
                               ],
                             ),
+
+                            const SizedBox(height: AppTokens.s12),
+                            Divider(color: scheme.outlineVariant.withOpacity(0.6)),
+                            const SizedBox(height: AppTokens.s12),
+
+                            // 3️⃣ INFO CALLOUT (INI TEMPAT YANG BENAR)
+                            _InfoCallout(
+                              icon: Icons.info_outline,
+                              title: "Catatan Penting",
+                              message:
+                                  "Informasi ini bersifat edukatif dan tidak menggantikan bantuan profesional. "
+                                  "Jika kamu membutuhkan bantuan segera, gunakan menu Layanan Bantuan.",
+                            ),
+
                             const SizedBox(height: AppTokens.s16),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(AppTokens.s16),
-                              decoration: BoxDecoration(
-                                color: scheme.surface,
-                                borderRadius: AppTokens.radius(AppTokens.r20),
-                                border: Border.all(color: scheme.outlineVariant.withOpacity(0.65)),
-                              ),
+
+                            // 4️⃣ BODY ARTIKEL (SATU KALI SAJA)
+                            _ArticleCard(
                               child: Text(
                                 data!.body,
                                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      height: 1.60,
+                                      height: 1.75,
+                                      letterSpacing: 0.2,
                                     ),
                               ),
                             ),
+
                             const SizedBox(height: AppTokens.s24),
                           ],
                         ),
-                      ),
+                      )
+
       ),
     );
   }
@@ -396,6 +413,99 @@ class _DetailShimmerState extends State<_DetailShimmer> with SingleTickerProvide
           ),
         );
       },
+    );
+  }
+}
+
+class _ArticleCard extends StatelessWidget {
+  final Widget child;
+  const _ArticleCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.s18,
+        vertical: AppTokens.s20,
+      ),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: AppTokens.radius(AppTokens.r24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+        border: Border.all(
+          color: scheme.outlineVariant.withOpacity(0.5),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _InfoCallout extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
+  const _InfoCallout({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.s14),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withOpacity(0.65),
+        borderRadius: AppTokens.radius(AppTokens.r16),
+        border: Border(
+          left: BorderSide(
+            color: scheme.primary,
+            width: 4,
+          ),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: scheme.onPrimaryContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onPrimaryContainer,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                        height: 1.4,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
