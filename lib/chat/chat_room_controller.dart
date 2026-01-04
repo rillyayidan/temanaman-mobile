@@ -138,6 +138,26 @@ class ChatRoomController extends ChangeNotifier {
       notifyListeners();
     }
   }
+  
+  /// Menambahkan pesan sistem (disclaimer, info, dll)
+  void addSystemMessage(String text) {
+    if (text.trim().isEmpty) return;
+
+    _streamSub?.cancel();
+    _streamSub = null;
+    _activeAssistantMsg = null;
+
+    _messages.add(
+      ChatMessage(
+        role: Role.assistant,
+        content: "[[DISCLAIMER]]$text",
+      ),
+    );
+
+    notifyListeners();
+  }
+
+
 
   @override
   void dispose() {

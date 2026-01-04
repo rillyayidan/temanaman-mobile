@@ -23,10 +23,29 @@ class _ChatPageState extends State<ChatPage> {
   final _scroll = ScrollController();
 
   bool initializing = true;
-
+  bool safeMode = false;
   // auto-scroll hanya kalau user dekat bawah
   bool _stickToBottom = true;
+  bool disclaimerShown = false;
 
+  bool _containsSensitiveContent(String text) {
+  final lower = text.toLowerCase();
+  return sensitiveKeywords.any((k) => lower.contains(k));
+}
+
+  final List<String> sensitiveKeywords = [
+  "bunuh diri",
+  "ingin mati",
+  "pengen mati",
+  "diperkosa",
+  "dilecehkan",
+  "disakiti",
+  "kekerasan",
+  "diancam",
+  "takut pulang",
+  "trauma",
+];
+  
   @override
   void initState() {
     super.initState();
@@ -40,6 +59,24 @@ class _ChatPageState extends State<ChatPage> {
     final distanceToBottom = pos.maxScrollExtent - pos.pixels;
     _stickToBottom = distanceToBottom < 140;
   }
+
+  void _insertDisclaimerIfNeeded(String userText) {
+  if (disclaimerShown) return;
+
+  if (_containsSensitiveContent(userText)) {
+    disclaimerShown = true;
+
+    ctrl?.addSystemMessage(
+      "⚠️ **Penting**\n\n"
+      "Aku mungkin tidak selalu bisa menggantikan bantuan profesional. "
+      "Jika kamu merasa dalam bahaya atau membutuhkan bantuan segera, "
+      "silakan gunakan tombol **Butuh Bantuan** di pojok kanan atas "
+      "untuk menghubungi layanan resmi.\n\n"
+      "Kamu tidak sendirian, dan mencari bantuan adalah langkah yang tepat.",
+    );
+  }
+}
+
 
   Future<void> _initRoom() async {
     final controller = ChatRoomController(
@@ -146,8 +183,13 @@ class _ChatPageState extends State<ChatPage> {
     _stickToBottom = true;
 
     _input.clear();
+
+    // 🔥 AUTO DISCLAIMER DI SINI
+    _insertDisclaimerIfNeeded(text);
+
     await c.sendStream(text);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +217,20 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: _exit,
           ),
           actions: [
+            // MODE AMAN
+            IconButton(
+              tooltip: safeMode ? "Matikan mode aman" : "Aktifkan mode aman",
+              icon: Icon(
+                safeMode ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () {
+                setState(() {
+                  safeMode = !safeMode;
+                });
+              },
+            ),
+
+            // BUTUH BANTUAN (tetap ada)
             IconButton(
               tooltip: "Butuh bantuan",
               icon: const Icon(Icons.support_agent),
@@ -200,12 +256,15 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
             Expanded(
-              child: _MessagesList(
-                messages: c.messages,
-                scroll: _scroll,
-                loading: c.loading,
-              ),
+              child: safeMode
+                  ? _SafeModeOverlay()
+                  : _MessagesList(
+                      messages: c.messages,
+                      scroll: _scroll,
+                      loading: c.loading,
+                    ),
             ),
+
             _Composer(
               controller: _input,
               enabled: !c.ended,
@@ -308,6 +367,10 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDisclaimer = !isUser && message.startsWith('[[DISCLAIMER]]');
+    final displayText =
+        isDisclaimer ? message.replaceFirst('[[DISCLAIMER]]', '') : message;
+
     final scheme = Theme.of(context).colorScheme;
 
     final bg = isUser
@@ -332,58 +395,60 @@ class _ChatBubble extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: bubbleMax),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(color: bg, borderRadius: radius),
-          child: isUser
-              ? Text(
-                  message,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: fg, height: 1.32),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDisclaimer
+                ? scheme.errorContainer.withOpacity(0.85)
+                : bg,
+            borderRadius: radius,
+            border: isDisclaimer
+                ? Border.all(
+                    color: scheme.error,
+                    width: 1.2,
+                  )
+                : null,
+          ),
+          child: isDisclaimer
+              ? _DisclaimerContent(
+                  text: displayText,
                 )
-              : MarkdownBody(
-                  data: message,
-                  selectable: true, // ⬅️ nanti kita jelaskan
-                  onTapLink: (text, href, title) async {
-                    if (href == null) return;
-
-                    final uri = Uri.tryParse(href);
-                    if (uri == null) return;
-
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode
-                            .externalApplication, // ⬅️ buka Chrome / browser
-                      );
-                    }
-                  },
-                  styleSheet: MarkdownStyleSheet(
-                    p: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: fg, height: 1.32),
-                    a: TextStyle(
-                      color: scheme.primary,
-                      decoration: TextDecoration.underline,
-                    ),
-                    strong: TextStyle(fontWeight: FontWeight.w600, color: fg),
-                    em: TextStyle(fontStyle: FontStyle.italic, color: fg),
-                    blockquote: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: fg, height: 1.32),
-                    blockquotePadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    blockquoteDecoration: BoxDecoration(
-                      color: scheme.surface.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border(
-                        left: BorderSide(color: scheme.primary, width: 3),
+              : isUser
+                  ? Text(
+                      message,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: fg, height: 1.32),
+                    )
+                  : MarkdownBody(
+                      data: displayText,
+                      selectable: true,
+                      onTapLink: (text, href, title) async {
+                        if (href == null) return;
+                        final uri = Uri.tryParse(href);
+                        if (uri == null) return;
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                      styleSheet: MarkdownStyleSheet(
+                        p: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: fg,
+                              height: 1.32,
+                            ),
+                        a: TextStyle(
+                          color: scheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                        strong: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: fg,
+                        ),
                       ),
                     ),
-                  ),
-                ),
         ),
       ),
     );
@@ -623,6 +688,96 @@ class _HelpAction extends StatelessWidget {
         final parsed = Uri.parse(uri);
         await launchUrl(parsed, mode: LaunchMode.externalApplication);
       },
+    );
+  }
+}
+
+class _SafeModeOverlay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      color: scheme.surface,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.visibility_off,
+            size: 48,
+            color: scheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Mode Aman Aktif",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Isi percakapan disembunyikan untuk menjaga privasi kamu.",
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DisclaimerContent extends StatelessWidget {
+  final String text;
+
+  const _DisclaimerContent({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // BADGE
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 18,
+              color: scheme.onErrorContainer,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              "PERINGATAN",
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: scheme.onErrorContainer,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.6,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // TEXT
+        MarkdownBody(
+          data: text,
+          selectable: true,
+          styleSheet: MarkdownStyleSheet(
+            p: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onErrorContainer,
+                  height: 1.35,
+                ),
+            strong: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: scheme.onErrorContainer,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
