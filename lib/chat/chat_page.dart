@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../api/teman_aman_api.dart';
 import 'chat_room_controller.dart';
@@ -317,7 +318,6 @@ class _ChatBubble extends StatelessWidget {
       bottomRight: Radius.circular(isUser ? AppTokens.r6 : AppTokens.r18),
     );
 
-    // max width adaptif, tapi tetap ada batas.
     final maxWidth = MediaQuery.of(context).size.width * 0.78;
     final hardCap = AppTokens.maxChatBubbleWidth;
     final bubbleMax = maxWidth > hardCap ? hardCap : maxWidth;
@@ -332,13 +332,32 @@ class _ChatBubble extends StatelessWidget {
             color: bg,
             borderRadius: radius,
           ),
-          child: Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: fg,
-                  height: 1.32,
+          child: isUser
+              ? Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: fg,
+                        height: 1.32,
+                      ),
+                )
+              : MarkdownBody(
+                  data: message,
+                  selectable: false,
+                  styleSheet: MarkdownStyleSheet(
+                    p: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: fg,
+                          height: 1.32,
+                        ),
+                    strong: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: fg,
+                    ),
+                    em: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: fg,
+                    ),
+                  ),
                 ),
-          ),
         ),
       ),
     );
