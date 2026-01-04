@@ -8,10 +8,7 @@ import 'chat_message.dart';
 import '../ui/app_tokens.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({
-    super.key,
-    required this.userKey,
-  });
+  const ChatPage({super.key, required this.userKey});
 
   final String userKey;
 
@@ -177,8 +174,14 @@ class _ChatPageState extends State<ChatPage> {
             icon: const Icon(Icons.arrow_back),
             onPressed: _exit,
           ),
+          actions: [
+            IconButton(
+              tooltip: "Butuh bantuan",
+              icon: const Icon(Icons.support_agent),
+              onPressed: () => _QuickHelpButton.show(context),
+            ),
+          ],
         ),
-        floatingActionButton: _QuickHelpButton(),
         body: Column(
           children: [
             if (c.ended)
@@ -192,8 +195,8 @@ class _ChatPageState extends State<ChatPage> {
                 child: Text(
                   "Chat sudah berakhir. Kamu tidak bisa mengirim pesan lagi.",
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onErrorContainer,
-                      ),
+                    color: scheme.onErrorContainer,
+                  ),
                 ),
               ),
             Expanded(
@@ -238,7 +241,11 @@ class _MessagesList extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.chat_bubble_outline, size: 34, color: scheme.onSurfaceVariant),
+              Icon(
+                Icons.chat_bubble_outline,
+                size: 34,
+                color: scheme.onSurfaceVariant,
+              ),
               const SizedBox(height: AppTokens.s12),
               Text(
                 "Mulai obrolan…",
@@ -248,8 +255,8 @@ class _MessagesList extends StatelessWidget {
               Text(
                 "Ceritakan yang kamu rasakan. TemanAman akan merespons dengan aman dan suportif.",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                  color: scheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -258,7 +265,8 @@ class _MessagesList extends StatelessWidget {
       );
     }
 
-    final lastIsEmptyAssistant = messages.isNotEmpty &&
+    final lastIsEmptyAssistant =
+        messages.isNotEmpty &&
         messages.last.role == Role.assistant &&
         messages.last.content.trim().isEmpty;
 
@@ -267,7 +275,6 @@ class _MessagesList extends StatelessWidget {
     final showTypingBubble = loading && !lastIsEmptyAssistant;
 
     final itemCount = messages.length + (showTypingBubble ? 1 : 0);
-
 
     return ListView.separated(
       controller: scroll,
@@ -286,10 +293,7 @@ class _MessagesList extends StatelessWidget {
         final isUser = m.role == Role.user;
 
         return RepaintBoundary(
-          child: _ChatBubble(
-            message: m.content,
-            isUser: isUser,
-          ),
+          child: _ChatBubble(message: m.content, isUser: isUser),
         );
       },
     );
@@ -300,16 +304,15 @@ class _ChatBubble extends StatelessWidget {
   final String message;
   final bool isUser;
 
-  const _ChatBubble({
-    required this.message,
-    required this.isUser,
-  });
+  const _ChatBubble({required this.message, required this.isUser});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    final bg = isUser ? scheme.primaryContainer : scheme.surfaceContainerHighest;
+    final bg = isUser
+        ? scheme.primaryContainer
+        : scheme.surfaceContainerHighest;
     final fg = isUser ? scheme.onPrimaryContainer : scheme.onSurface;
     final align = isUser ? Alignment.centerRight : Alignment.centerLeft;
 
@@ -330,17 +333,13 @@ class _ChatBubble extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: bubbleMax),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: radius,
-          ),
+          decoration: BoxDecoration(color: bg, borderRadius: radius),
           child: isUser
               ? Text(
                   message,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: fg,
-                        height: 1.32,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: fg, height: 1.32),
                 )
               : MarkdownBody(
                   data: message,
@@ -354,32 +353,28 @@ class _ChatBubble extends StatelessWidget {
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(
                         uri,
-                        mode: LaunchMode.externalApplication, // ⬅️ buka Chrome / browser
+                        mode: LaunchMode
+                            .externalApplication, // ⬅️ buka Chrome / browser
                       );
                     }
                   },
                   styleSheet: MarkdownStyleSheet(
-                    p: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: fg,
-                          height: 1.32,
-                        ),
+                    p: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: fg, height: 1.32),
                     a: TextStyle(
                       color: scheme.primary,
                       decoration: TextDecoration.underline,
                     ),
-                    strong: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: fg,
+                    strong: TextStyle(fontWeight: FontWeight.w600, color: fg),
+                    em: TextStyle(fontStyle: FontStyle.italic, color: fg),
+                    blockquote: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: fg, height: 1.32),
+                    blockquotePadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                    em: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      color: fg,
-                    ),
-                    blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: fg,
-                          height: 1.32,
-                        ),
-                    blockquotePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     blockquoteDecoration: BoxDecoration(
                       color: scheme.surface.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(8),
@@ -388,7 +383,7 @@ class _ChatBubble extends StatelessWidget {
                       ),
                     ),
                   ),
-                )
+                ),
         ),
       ),
     );
@@ -487,14 +482,17 @@ class _TypingDots extends StatefulWidget {
   State<_TypingDots> createState() => _TypingDotsState();
 }
 
-class _TypingDotsState extends State<_TypingDots> with SingleTickerProviderStateMixin {
+class _TypingDotsState extends State<_TypingDots>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c;
 
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
-      ..repeat();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
   }
 
   @override
@@ -545,32 +543,14 @@ class _Dot extends StatelessWidget {
       child: Container(
         width: 6,
         height: 6,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
     );
   }
 }
 
-class _QuickHelpButton extends StatelessWidget {
-  const _QuickHelpButton();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return FloatingActionButton.extended(
-      icon: const Icon(Icons.support_agent),
-      label: const Text("Butuh bantuan"),
-      backgroundColor: scheme.errorContainer,
-      foregroundColor: scheme.onErrorContainer,
-      onPressed: () => _showHelpSheet(context),
-    );
-  }
-
-  void _showHelpSheet(BuildContext context) {
+class _QuickHelpButton {
+  static void show(BuildContext context) {
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
@@ -600,9 +580,9 @@ class _QuickHelpButton extends StatelessWidget {
               ),
               _HelpAction(
                 icon: Icons.chat,
-                label: "WhatsApp Sahabat Perempuan",
-                value: "+62 812-1234-5678",
-                uri: "https://wa.me/6281212345678",
+                label: "SAPA 129 WhatsApp",
+                value: "+62 811-1129-129",
+                uri: "https://wa.me/628111129129",
               ),
               _HelpAction(
                 icon: Icons.public,
