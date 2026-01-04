@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api/teman_aman_api.dart';
 import 'chat_room_controller.dart';
@@ -177,6 +178,7 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: _exit,
           ),
         ),
+        floatingActionButton: _QuickHelpButton(),
         body: Column(
           children: [
             if (c.ended)
@@ -342,42 +344,47 @@ class _ChatBubble extends StatelessWidget {
                 )
               : MarkdownBody(
                   data: message,
-                  selectable: false,
+                  selectable: true, // ⬅️ nanti kita jelaskan
+                  onTapLink: (text, href, title) async {
+                    if (href == null) return;
+
+                    final uri = Uri.tryParse(href);
+                    if (uri == null) return;
+
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication, // ⬅️ buka Chrome / browser
+                      );
+                    }
+                  },
                   styleSheet: MarkdownStyleSheet(
                     p: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: fg,
                           height: 1.32,
                         ),
-
+                    a: TextStyle(
+                      color: scheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
                     strong: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: fg,
                     ),
-
                     em: TextStyle(
                       fontStyle: FontStyle.italic,
                       color: fg,
                     ),
-
-                    // INI YANG PENTING
                     blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: fg,
                           height: 1.32,
                         ),
-
-                    blockquotePadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-
+                    blockquotePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     blockquoteDecoration: BoxDecoration(
-                      color: scheme.surface.withOpacity(0.6), // aman di dark & light
+                      color: scheme.surface.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(8),
                       border: Border(
-                        left: BorderSide(
-                          color: scheme.primary,
-                          width: 3,
-                        ),
+                        left: BorderSide(color: scheme.primary, width: 3),
                       ),
                     ),
                   ),
@@ -543,6 +550,99 @@ class _Dot extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       ),
+    );
+  }
+}
+
+class _QuickHelpButton extends StatelessWidget {
+  const _QuickHelpButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return FloatingActionButton.extended(
+      icon: const Icon(Icons.support_agent),
+      label: const Text("Butuh bantuan"),
+      backgroundColor: scheme.errorContainer,
+      foregroundColor: scheme.onErrorContainer,
+      onPressed: () => _showHelpSheet(context),
+    );
+  }
+
+  void _showHelpSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Butuh bantuan sekarang?",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Kamu bisa menghubungi layanan resmi berikut:",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+
+              _HelpAction(
+                icon: Icons.phone,
+                label: "Hotline KemenPPPA",
+                value: "129",
+                uri: "tel:129",
+              ),
+              _HelpAction(
+                icon: Icons.chat,
+                label: "WhatsApp Sahabat Perempuan",
+                value: "+62 812-1234-5678",
+                uri: "https://wa.me/6281212345678",
+              ),
+              _HelpAction(
+                icon: Icons.public,
+                label: "Website Resmi",
+                value: "kemenpppa.go.id",
+                uri: "https://www.kemenpppa.go.id",
+              ),
+
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HelpAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String uri;
+
+  const _HelpAction({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.uri,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: Text(value),
+      onTap: () async {
+        final parsed = Uri.parse(uri);
+        await launchUrl(parsed, mode: LaunchMode.externalApplication);
+      },
     );
   }
 }

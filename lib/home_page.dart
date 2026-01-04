@@ -8,6 +8,7 @@ import 'pages/quiz_levels_page.dart';
 import 'pages/education_categories_page.dart';
 import 'pages/privacy_page.dart';
 import 'pages/help_page.dart';
+import 'package:flutter/services.dart';
 
 import 'ui/app_tokens.dart';
 
@@ -149,7 +150,7 @@ class _HomePageState extends State<HomePage> {
 
         final shouldExit = await _confirmExit(context);
         if (shouldExit && context.mounted) {
-          Navigator.of(context).pop();
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(
