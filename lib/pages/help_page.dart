@@ -16,6 +16,7 @@ class HelpPage extends StatefulWidget {
 
 class _HelpPageState extends State<HelpPage> {
   final api = HelpApi();
+  final ScrollController _scrollController = ScrollController();
 
   List<HelpContactDto> items = [];
   String? error;
@@ -34,17 +35,29 @@ class _HelpPageState extends State<HelpPage> {
   String? selectedRegion;
 
   Timer? _reloadDebounce;
+  bool _isHeaderExpanded = true;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _reloadDebounce?.cancel();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    // Header mengecil setelah scroll > 50px
+    final shouldExpand = _scrollController.offset < 50;
+    if (shouldExpand != _isHeaderExpanded) {
+      setState(() => _isHeaderExpanded = shouldExpand);
+    }
   }
 
   Future<void> _load() async {
@@ -81,13 +94,11 @@ class _HelpPageState extends State<HelpPage> {
   Future<void> _openContact(HelpContactDto c) async {
     final uri = _buildUri(c);
 
-    // Kalau tidak bisa dibuat URI, langsung copy
     if (uri == null) {
       await _copyWithFallbackSnack(c.contactValue, opened: false);
       return;
     }
 
-    // Kalau device tidak support, fallback copy
     if (!await canLaunchUrl(uri)) {
       await _copyWithFallbackSnack(c.contactValue, opened: false);
       return;
@@ -107,7 +118,6 @@ class _HelpPageState extends State<HelpPage> {
         return Uri.parse("tel:$value");
 
       case "whatsapp":
-        // normalisasi aman: hapus non-digit, handle +62 / 62 / 08
         var digits = value.replaceAll(RegExp(r'[^0-9]'), '');
         if (digits.startsWith('0')) {
           digits = digits.replaceFirst(RegExp(r'^0'), '62');
@@ -232,24 +242,46 @@ class _HelpPageState extends State<HelpPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header + filter
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            // Header dengan animasi collapse
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.fromLTRB(
+                16,
+                _isHeaderExpanded ? 12 : 8,
+                16,
+                _isHeaderExpanded ? 8 : 6,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Kontak bantuan cepat",
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppTokens.s6),
-                  Text(
-                    "Pilih region untuk melihat kontak terdekat. Tap kartu untuk membuka. Jika gagal, kamu bisa salin nomor/link.",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
+                  // Title dan deskripsi - hilang saat scroll
+                  AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 200),
+                    crossFadeState: _isHeaderExpanded
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                    firstChild: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Kontak bantuan cepat",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: AppTokens.s6),
+                        Text(
+                          "Pilih region untuk melihat kontak terdekat. Tap kartu untuk membuka. Jika gagal, kamu bisa salin nomor/link.",
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                        ),
+                        const SizedBox(height: AppTokens.s12),
+                      ],
                     ),
+                    secondChild: const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: AppTokens.s12),
+                  // Dropdown filter - tetap terlihat
                   DropdownButtonFormField<String?>(
                     value: selectedRegion,
                     items: regions
@@ -278,31 +310,32 @@ class _HelpPageState extends State<HelpPage> {
               child: loading
                   ? const Center(child: CircularProgressIndicator())
                   : (error != null)
-                  ? _ErrorView(message: error!, onRetry: _load)
-                  : (items.isEmpty)
-                  ? const _EmptyView(
-                      title: "Belum ada kontak",
-                      message:
-                          "Tidak ada data kontak bantuan untuk region ini.",
-                      icon: Icons.support_agent_outlined,
-                    )
-                  : ListView.separated(
-                      padding: AppTokens.listPadding,
-                      itemCount: items.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(height: AppTokens.s12),
-                      itemBuilder: (context, i) {
-                        final c = items[i];
-                        return _HelpCard(
-                          contact: c,
-                          typeLabel: _typeLabel(c.contactType),
-                          typeIcon: _typeIcon(c.contactType),
-                          actionLabel: _actionLabel(c.contactType),
-                          onOpen: () => _openContact(c),
-                          onCopy: () => _copy(c.contactValue),
-                        );
-                      },
-                    ),
+                      ? _ErrorView(message: error!, onRetry: _load)
+                      : (items.isEmpty)
+                          ? const _EmptyView(
+                              title: "Belum ada kontak",
+                              message:
+                                  "Tidak ada data kontak bantuan untuk region ini.",
+                              icon: Icons.support_agent_outlined,
+                            )
+                          : ListView.separated(
+                              controller: _scrollController,
+                              padding: AppTokens.listPadding,
+                              itemCount: items.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: AppTokens.s12),
+                              itemBuilder: (context, i) {
+                                final c = items[i];
+                                return _HelpCard(
+                                  contact: c,
+                                  typeLabel: _typeLabel(c.contactType),
+                                  typeIcon: _typeIcon(c.contactType),
+                                  actionLabel: _actionLabel(c.contactType),
+                                  onOpen: () => _openContact(c),
+                                  onCopy: () => _copy(c.contactValue),
+                                );
+                              },
+                            ),
             ),
           ],
         ),
@@ -399,9 +432,9 @@ class _HelpCard extends StatelessWidget {
                 Text(
                   contact.description!.trim(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.35,
-                  ),
+                        color: scheme.onSurfaceVariant,
+                        height: 1.35,
+                      ),
                 ),
               ],
               const SizedBox(height: AppTokens.s12),
