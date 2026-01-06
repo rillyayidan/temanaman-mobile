@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'services/user_identity.dart';
 
@@ -8,7 +9,6 @@ import 'pages/quiz_levels_page.dart';
 import 'pages/education_categories_page.dart';
 import 'pages/privacy_page.dart';
 import 'pages/help_page.dart';
-import 'package:flutter/services.dart';
 
 import 'ui/app_tokens.dart';
 
@@ -52,7 +52,6 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-
     return result ?? false;
   }
 
@@ -82,141 +81,137 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    final items = <_HomeItem>[
-      _HomeItem(
-        title: "Chat AI",
-        subtitle: "Curhat & dukungan awal",
-        icon: Icons.chat_bubble_outline,
-        isPrimary: true,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ChatPage(userKey: userKey!)),
-          );
-        },
-      ),
-      _HomeItem(
-        title: "Edukasi",
-        subtitle: "Materi & tips aman",
-        icon: Icons.menu_book_outlined,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const EducationCategoriesPage()),
-          );
-        },
-      ),
-      _HomeItem(
-        title: "Kuis",
-        subtitle: "Level up + riwayat",
-        icon: Icons.quiz_outlined,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => QuizLevelsPage(userKey: userKey!),
-            ),
-          );
-        },
-      ),
-      _HomeItem(
-        title: "Layanan Bantuan",
-        subtitle: "Website/WA/telepon",
-        icon: Icons.support_agent_outlined,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HelpPage()),
-          );
-        },
-      ),
-      _HomeItem(
-        title: "Info Privasi",
-        subtitle: "Kebijakan & disclaimer",
-        icon: Icons.privacy_tip_outlined,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PrivacyPage()),
-          );
-        },
-      ),
-    ];
-
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {
         if (didPop) return;
-
         final shouldExit = await _confirmExit(context);
         if (shouldExit && context.mounted) {
           SystemNavigator.pop();
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text("TemanAman"),
-          actions: [
-            IconButton(
-              tooltip: "Reload user identity",
-              onPressed: () async {
-                await _loadUserKey();
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("User identity reloaded")),
-                );
-              },
-              icon: const Icon(Icons.refresh),
-            ),
-          ],
-        ),
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: _loadUserKey,
-            child: LayoutBuilder(
-              builder: (context, c) {
-                final width = c.maxWidth;
-                final crossAxisCount = width >= 520 ? 3 : 2;
-                final childAspectRatio = crossAxisCount == 3 ? 1.20 : 1.12;
-
-                return ListView(
-                  padding: AppTokens.listPadding,
-                  children: [
-                    Text(
-                      "Halo!",
-                      style: Theme.of(context).textTheme.headlineSmall,
+            child: ListView(
+              padding: AppTokens.pagePadding,
+              children: [
+                // =========================
+                // HERO AI SECTION
+                // =========================
+                Container(
+                  padding: const EdgeInsets.all(AppTokens.s20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [scheme.primary, scheme.primaryContainer],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    const SizedBox(height: AppTokens.s6),
-                    Text(
-                      "Pilih fitur yang kamu butuhkan. Kamu bisa mulai dari Chat AI atau coba Kuis untuk level up.",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                    borderRadius: AppTokens.radius(AppTokens.r24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Kamu nggak sendirian.",
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(color: scheme.onPrimary),
                       ),
-                    ),
-                    const SizedBox(height: AppTokens.s16),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: items.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: AppTokens.s12,
-                        mainAxisSpacing: AppTokens.s12,
-                        childAspectRatio: childAspectRatio,
+                      const SizedBox(height: AppTokens.s8),
+                      Text(
+                        "TemanAman siap menemani kamu bicara, belajar, dan mencari bantuan dengan aman.",
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onPrimary.withOpacity(0.9),
+                          height: 1.4,
+                        ),
                       ),
-                      itemBuilder: (context, i) => _HomeCard(item: items[i]),
-                    ),
-                    if (kDebugMode) ...[
-                      const SizedBox(height: AppTokens.s18),
-                      _MiniInfoCard(
-                        icon: Icons.fingerprint,
-                        title: "UserKey (debug)",
-                        value: userKey!,
+                      const SizedBox(height: AppTokens.s16),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: scheme.onPrimary,
+                          foregroundColor: scheme.primary,
+                        ),
+                        icon: const Icon(Icons.chat_bubble_rounded),
+                        label: const Text("Mulai Chat AI"),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatPage(userKey: userKey!),
+                            ),
+                          );
+                        },
                       ),
                     ],
-                  ],
-                );
-              },
+                  ),
+                ),
+ 
+                const SizedBox(height: AppTokens.s24),
+
+                // =========================
+                // QUICK ACTIONS
+                // =========================
+                Text(
+                  "Fitur lainnya",
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppTokens.s12),
+
+                _ActionTile(
+                  icon: Icons.menu_book_rounded,
+                  title: "Edukasi",
+                  subtitle: "Materi pencegahan & perlindungan diri",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EducationCategoriesPage(),
+                      ),
+                    );
+                  },
+                ),
+                _ActionTile(
+                  icon: Icons.quiz_rounded,
+                  title: "Kuis",
+                  subtitle: "Uji pemahaman dan tingkatkan kesadaran",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => QuizLevelsPage(userKey: userKey!),
+                      ),
+                    );
+                  },
+                ),
+                _ActionTile(
+                  icon: Icons.support_agent_rounded,
+                  title: "Layanan Bantuan",
+                  subtitle: "Kontak bantuan terpercaya & darurat",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpPage()),
+                    );
+                  },
+                ),
+                _ActionTile(
+                  icon: Icons.privacy_tip_rounded,
+                  title: "Privasi & Ketentuan",
+                  subtitle: "Kebijakan, disclaimer AI, dan penggunaan",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PrivacyPage()),
+                    );
+                  },
+                ),
+
+                if (kDebugMode) ...[
+                  const SizedBox(height: AppTokens.s24),
+                  _DebugInfoCard(userKey: userKey!),
+                ],
+              ],
             ),
           ),
         ),
@@ -225,72 +220,68 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _HomeItem {
+// =====================================================
+// ACTION TILE
+// =====================================================
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String subtitle;
-  final IconData icon;
   final VoidCallback onTap;
-  final bool isPrimary;
 
-  _HomeItem({
+  const _ActionTile({
+    required this.icon,
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.onTap,
-    this.isPrimary = false,
   });
-}
-
-class _HomeCard extends StatelessWidget {
-  final _HomeItem item;
-  const _HomeCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    final bg = item.isPrimary
-        ? scheme.primaryContainer
-        : scheme.surfaceContainerHighest;
-    final fg = item.isPrimary ? scheme.onPrimaryContainer : scheme.onSurface;
-
-    return Material(
-      color: bg,
-      borderRadius: AppTokens.radius(AppTokens.r20),
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTokens.s12),
+      child: Material(
+        color: scheme.surface,
         borderRadius: AppTokens.radius(AppTokens.r20),
-        onTap: item.onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.s14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _IconBadge(
-                icon: item.icon,
-                foreground: fg,
-                background: scheme.surface.withOpacity(
-                  item.isPrimary ? 0.35 : 0.65,
+        child: InkWell(
+          borderRadius: AppTokens.radius(AppTokens.r20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTokens.s16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppTokens.s10),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest,
+                    borderRadius: AppTokens.radius(AppTokens.r14),
+                  ),
+                  child: Icon(icon, color: scheme.primary),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                item.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: fg),
-              ),
-              const SizedBox(height: AppTokens.s6),
-              Text(
-                item.subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: (item.isPrimary ? fg : scheme.onSurfaceVariant)
-                      .withOpacity(0.95),
-                  height: 1.25,
+                const SizedBox(width: AppTokens.s14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+                const Icon(Icons.chevron_right_rounded),
+              ],
+            ),
           ),
         ),
       ),
@@ -298,40 +289,12 @@ class _HomeCard extends StatelessWidget {
   }
 }
 
-class _IconBadge extends StatelessWidget {
-  final IconData icon;
-  final Color foreground;
-  final Color background;
-
-  const _IconBadge({
-    required this.icon,
-    required this.foreground,
-    required this.background,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.s10),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: AppTokens.radius(AppTokens.r16),
-      ),
-      child: Icon(icon, size: 26, color: foreground),
-    );
-  }
-}
-
-class _MiniInfoCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-
-  const _MiniInfoCard({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
+// =====================================================
+// DEBUG CARD
+// =====================================================
+class _DebugInfoCard extends StatelessWidget {
+  final String userKey;
+  const _DebugInfoCard({required this.userKey});
 
   @override
   Widget build(BuildContext context) {
@@ -342,21 +305,21 @@ class _MiniInfoCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppTokens.s12),
         child: Row(
           children: [
-            Icon(icon, color: scheme.onSurfaceVariant),
+            Icon(Icons.fingerprint, color: scheme.onSurfaceVariant),
             const SizedBox(width: AppTokens.s10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    "UserKey (debug)",
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: AppTokens.s4),
                   Text(
-                    value,
+                    userKey,
                     style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
