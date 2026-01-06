@@ -33,8 +33,8 @@ android {
         applicationId = "com.temanaman.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 11
-        versionName = "1.0.10"
+        versionCode = 14
+        versionName = "1.0.13"
     }
 
     signingConfigs {

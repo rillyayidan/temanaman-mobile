@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../api/education_api.dart';
 import '../ui/app_tokens.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:html_unescape/html_unescape.dart';
+
+final unescape = HtmlUnescape();
 
 class EducationDetailPage extends StatefulWidget {
   final String contentSlug;
@@ -117,7 +121,9 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
     final scheme = Theme.of(context).colorScheme;
 
     final publishedRaw = (data?.publishedAt ?? "").trim();
-    final publishedPretty = publishedRaw.isEmpty ? "" : _formatPublished(publishedRaw);
+    final publishedPretty = publishedRaw.isEmpty
+        ? ""
+        : _formatPublished(publishedRaw);
 
     return Scaffold(
       appBar: AppBar(
@@ -135,71 +141,79 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
         child: loading
             ? const _DetailShimmer()
             : (error != null)
-                ? _ErrorView(message: error!, onRetry: _load)
-                : (data == null)
-                    ? const _EmptyView(
-                        title: "Konten tidak ditemukan",
-                        message: "Coba refresh atau kembali ke daftar konten.",
-                        icon: Icons.article_outlined,
-                      )
-                    : SingleChildScrollView(
-                        padding: AppTokens.pagePadding,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1️⃣ JUDUL
-                            Text(
-                              data!.title,
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+            ? _ErrorView(message: error!, onRetry: _load)
+            : (data == null)
+            ? const _EmptyView(
+                title: "Konten tidak ditemukan",
+                message: "Coba refresh atau kembali ke daftar konten.",
+                icon: Icons.article_outlined,
+              )
+            : SingleChildScrollView(
+                padding: AppTokens.pagePadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1️⃣ JUDUL
+                    Text(
+                      data!.title,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: AppTokens.s10),
+
+                    // 2️⃣ META (tanggal)
+                    Wrap(
+                      spacing: AppTokens.s8,
+                      runSpacing: AppTokens.s8,
+                      children: [
+                        if (publishedPretty.isNotEmpty)
+                          _MetaPill(
+                            icon: Icons.calendar_today_outlined,
+                            text: "Dipublikasikan: $publishedPretty",
+                          ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppTokens.s12),
+                    Divider(color: scheme.outlineVariant.withOpacity(0.6)),
+                    const SizedBox(height: AppTokens.s12),
+
+                    // 3️⃣ INFO CALLOUT (INI TEMPAT YANG BENAR)
+                    _InfoCallout(
+                      icon: Icons.info_outline,
+                      title: "Catatan Penting",
+                      message:
+                          "Informasi ini bersifat edukatif dan tidak menggantikan bantuan profesional. "
+                          "Jika kamu membutuhkan bantuan segera, gunakan menu Layanan Bantuan.",
+                    ),
+
+                    const SizedBox(height: AppTokens.s16),
+
+                    // 4️⃣ BODY ARTIKEL (SATU KALI SAJA)
+                    _ArticleCard(
+                      child: Html(
+                        data: unescape.convert(data!.body),
+                        style: {
+                          "body": Style(
+                            margin: Margins.zero,
+                            padding: HtmlPaddings.zero,
+                            fontSize: FontSize(
+                              Theme.of(context).textTheme.bodyLarge?.fontSize ??
+                                  14,
                             ),
-                            const SizedBox(height: AppTokens.s10),
+                            lineHeight: const LineHeight(1.6),
+                            color: scheme.onSurface,
+                          ),
+                          "p": Style(margin: Margins.only(bottom: 12)),
+                          "li": Style(margin: Margins.only(bottom: 8)),
+                        },
+                      ),
+                    ),
 
-                            // 2️⃣ META (tanggal)
-                            Wrap(
-                              spacing: AppTokens.s8,
-                              runSpacing: AppTokens.s8,
-                              children: [
-                                if (publishedPretty.isNotEmpty)
-                                  _MetaPill(
-                                    icon: Icons.calendar_today_outlined,
-                                    text: "Dipublikasikan: $publishedPretty",
-                                  ),
-                              ],
-                            ),
-
-                            const SizedBox(height: AppTokens.s12),
-                            Divider(color: scheme.outlineVariant.withOpacity(0.6)),
-                            const SizedBox(height: AppTokens.s12),
-
-                            // 3️⃣ INFO CALLOUT (INI TEMPAT YANG BENAR)
-                            _InfoCallout(
-                              icon: Icons.info_outline,
-                              title: "Catatan Penting",
-                              message:
-                                  "Informasi ini bersifat edukatif dan tidak menggantikan bantuan profesional. "
-                                  "Jika kamu membutuhkan bantuan segera, gunakan menu Layanan Bantuan.",
-                            ),
-
-                            const SizedBox(height: AppTokens.s16),
-
-                            // 4️⃣ BODY ARTIKEL (SATU KALI SAJA)
-                            _ArticleCard(
-                              child: Text(
-                                data!.body,
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      height: 1.75,
-                                      letterSpacing: 0.2,
-                                    ),
-                              ),
-                            ),
-
-                            const SizedBox(height: AppTokens.s24),
-                          ],
-                        ),
-                      )
-
+                    const SizedBox(height: AppTokens.s24),
+                  ],
+                ),
+              ),
       ),
     );
   }
@@ -227,9 +241,9 @@ class _MetaPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             text,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -251,13 +265,22 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.wifi_off_rounded, size: 44, color: scheme.onSurfaceVariant),
+            Icon(
+              Icons.wifi_off_rounded,
+              size: 44,
+              color: scheme.onSurfaceVariant,
+            ),
             const SizedBox(height: AppTokens.s12),
-            Text("Gagal memuat detail", style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              "Gagal memuat detail",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: AppTokens.s6),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
               textAlign: TextAlign.center,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
@@ -301,7 +324,9 @@ class _EmptyView extends StatelessWidget {
             const SizedBox(height: AppTokens.s6),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
           ],
@@ -319,14 +344,17 @@ class _DetailShimmer extends StatefulWidget {
   State<_DetailShimmer> createState() => _DetailShimmerState();
 }
 
-class _DetailShimmerState extends State<_DetailShimmer> with SingleTickerProviderStateMixin {
+class _DetailShimmerState extends State<_DetailShimmer>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c;
 
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))
-      ..repeat();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
   }
 
   @override
@@ -341,13 +369,13 @@ class _DetailShimmerState extends State<_DetailShimmer> with SingleTickerProvide
     final base = scheme.surfaceContainerHighest;
 
     Widget bar(double h, double w) => Container(
-          height: h,
-          width: w,
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadius.circular(10),
-          ),
-        );
+      height: h,
+      width: w,
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
 
     return AnimatedBuilder(
       animation: _c,
@@ -365,7 +393,9 @@ class _DetailShimmerState extends State<_DetailShimmer> with SingleTickerProvide
                   padding: const EdgeInsets.all(AppTokens.s16),
                   decoration: BoxDecoration(
                     color: base,
-                    border: Border.all(color: scheme.outlineVariant.withOpacity(0.65)),
+                    border: Border.all(
+                      color: scheme.outlineVariant.withOpacity(0.65),
+                    ),
                     borderRadius: AppTokens.radius(AppTokens.r20),
                   ),
                   child: Column(
@@ -441,9 +471,7 @@ class _ArticleCard extends StatelessWidget {
             offset: const Offset(0, 6),
           ),
         ],
-        border: Border.all(
-          color: scheme.outlineVariant.withOpacity(0.5),
-        ),
+        border: Border.all(color: scheme.outlineVariant.withOpacity(0.5)),
       ),
       child: child,
     );
@@ -470,12 +498,7 @@ class _InfoCallout extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.primaryContainer.withOpacity(0.65),
         borderRadius: AppTokens.radius(AppTokens.r16),
-        border: Border(
-          left: BorderSide(
-            color: scheme.primary,
-            width: 4,
-          ),
-        ),
+        border: Border(left: BorderSide(color: scheme.primary, width: 4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,17 +512,17 @@ class _InfoCallout extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onPrimaryContainer,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: scheme.onPrimaryContainer,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onPrimaryContainer,
-                        height: 1.4,
-                      ),
+                    color: scheme.onPrimaryContainer,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
