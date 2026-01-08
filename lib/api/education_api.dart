@@ -9,10 +9,10 @@ class CategoryDto {
   CategoryDto({required this.name, required this.slug, this.description});
 
   factory CategoryDto.fromJson(Map<String, dynamic> json) => CategoryDto(
-        name: (json["name"] ?? "").toString(),
-        slug: (json["slug"] ?? "").toString(),
-        description: json["description"]?.toString(),
-      );
+    name: (json["name"] ?? "").toString(),
+    slug: (json["slug"] ?? "").toString(),
+    description: json["description"]?.toString(),
+  );
 }
 
 class ContentItemDto {
@@ -29,11 +29,11 @@ class ContentItemDto {
   });
 
   factory ContentItemDto.fromJson(Map<String, dynamic> json) => ContentItemDto(
-        title: (json["title"] ?? "").toString(),
-        slug: (json["slug"] ?? "").toString(),
-        excerpt: json["excerpt"]?.toString(),
-        publishedAt: json["published_at"]?.toString(),
-      );
+    title: (json["title"] ?? "").toString(),
+    slug: (json["slug"] ?? "").toString(),
+    excerpt: json["excerpt"]?.toString(),
+    publishedAt: json["published_at"]?.toString(),
+  );
 }
 
 class ContentListDto {
@@ -43,11 +43,11 @@ class ContentListDto {
   ContentListDto({required this.category, required this.items});
 
   factory ContentListDto.fromJson(Map<String, dynamic> json) => ContentListDto(
-        category: CategoryDto.fromJson(json["category"] as Map<String, dynamic>),
-        items: (json["items"] as List)
-            .map((e) => ContentItemDto.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+    category: CategoryDto.fromJson(json["category"] as Map<String, dynamic>),
+    items: (json["items"] as List)
+        .map((e) => ContentItemDto.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
 }
 
 class ContentDetailDto {
@@ -63,7 +63,8 @@ class ContentDetailDto {
     this.publishedAt,
   });
 
-  factory ContentDetailDto.fromJson(Map<String, dynamic> json) => ContentDetailDto(
+  factory ContentDetailDto.fromJson(Map<String, dynamic> json) =>
+      ContentDetailDto(
         title: (json["title"] ?? "").toString(),
         slug: (json["slug"] ?? "").toString(),
         body: (json["body"] ?? "").toString(),
@@ -81,7 +82,9 @@ class EducationApi {
     final res = await _client.get(uri);
 
     if (res.statusCode != 200) {
-      throw Exception("GET /education/categories failed: ${res.statusCode} ${res.body}");
+      throw Exception(
+        "GET /education/categories failed: ${res.statusCode} ${res.body}",
+      );
     }
 
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -94,7 +97,9 @@ class EducationApi {
     final res = await _client.get(uri);
 
     if (res.statusCode != 200) {
-      throw Exception("GET /education/categories/$slug/contents failed: ${res.statusCode} ${res.body}");
+      throw Exception(
+        "GET /education/categories/$slug/contents failed: ${res.statusCode} ${res.body}",
+      );
     }
 
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -106,7 +111,9 @@ class EducationApi {
     final res = await _client.get(uri);
 
     if (res.statusCode != 200) {
-      throw Exception("GET /education/contents/$slug failed: ${res.statusCode} ${res.body}");
+      throw Exception(
+        "GET /education/contents/$slug failed: ${res.statusCode} ${res.body}",
+      );
     }
 
     final data = jsonDecode(res.body) as Map<String, dynamic>;
