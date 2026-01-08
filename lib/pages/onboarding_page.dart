@@ -31,7 +31,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     _OnboardData(
       title: "Dalam kondisi terancam?",
       description:
-          "Gunakan Safe Mode, tekan tombol Butuh Bantuan,\ndan hubungi orang terpercaya atau layanan darurat.",
+          "Aktifkan Safe Mode, tekan tombol Butuh Bantuan,\ndan hubungi orang terpercaya atau layanan darurat.",
       icon: Icons.shield_rounded,
     ),
     _OnboardData(
@@ -65,11 +65,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
             // =====================
             // SKIP BUTTON
             // =====================
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _finish,
-                child: const Text("Lewati"),
+            Padding(
+              padding: AppTokens.pagePadding,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: isLast ? 0 : 1,
+                  child: TextButton(
+                    onPressed: isLast ? null : _finish,
+                    child: const Text("Lewati"),
+                  ),
+                ),
               ),
             ),
 
@@ -80,6 +87,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: PageView.builder(
                 controller: _controller,
                 itemCount: pages.length,
+                physics: const BouncingScrollPhysics(),
                 onPageChanged: (i) => setState(() => _index = i),
                 itemBuilder: (_, i) => _OnboardPage(data: pages[i]),
               ),
@@ -93,10 +101,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
               children: List.generate(
                 pages.length,
                 (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   height: 8,
-                  width: _index == i ? 22 : 8,
+                  width: _index == i ? 24 : 8,
                   decoration: BoxDecoration(
                     color: _index == i
                         ? scheme.primary
@@ -117,17 +126,26 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   onPressed: () {
                     if (isLast) {
                       _finish();
                     } else {
                       _controller.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeOutCubic,
                       );
                     }
                   },
-                  child: Text(isLast ? "Mulai Pakai TemanAman" : "Lanjut"),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Text(
+                      isLast ? "Mulai Pakai TemanAman" : "Lanjut",
+                      key: ValueKey(isLast),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -156,16 +174,23 @@ class _OnboardPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppTokens.s20),
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              data.icon,
-              size: 56,
-              color: scheme.onPrimaryContainer,
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.85, end: 1),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutBack,
+            builder: (_, scale, child) =>
+                Transform.scale(scale: scale, child: child),
+            child: Container(
+              padding: const EdgeInsets.all(AppTokens.s20),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                data.icon,
+                size: 56,
+                color: scheme.onPrimaryContainer,
+              ),
             ),
           ),
           const SizedBox(height: AppTokens.s24),
@@ -180,7 +205,7 @@ class _OnboardPage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
-                  height: 1.4,
+                  height: 1.45,
                 ),
           ),
         ],
