@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ui/app_tokens.dart';
 import '../home_page.dart';
 
+// =====================================================
+// ONBOARDING PAGE
+// =====================================================
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
 
@@ -14,6 +18,11 @@ class OnboardingPage extends StatefulWidget {
 class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _controller = PageController();
   int _index = 0;
+  bool _isProcessing = false;
+
+  static const _kFastAnim = Duration(milliseconds: 200);
+  static const _kMediumAnim = Duration(milliseconds: 350);
+  static const _kSlowAnim = Duration(milliseconds: 500);
 
   final pages = const [
     _OnboardData(
@@ -43,14 +52,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
   ];
 
   Future<void> _finish() async {
+    if (_isProcessing) return;
+    _isProcessing = true;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenOnboarding', true);
+
     if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomePage()),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,10 +89,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: Align(
                 alignment: Alignment.centerRight,
                 child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
+                  duration: _kFastAnim,
                   opacity: isLast ? 0 : 1,
                   child: TextButton(
-                    onPressed: isLast ? null : _finish,
+                    onPressed: isLast
+                        ? null
+                        : () {
+                            HapticFeedback.selectionClick();
+                            _finish();
+                          },
                     child: const Text("Lewati"),
                   ),
                 ),
@@ -88,7 +112,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 controller: _controller,
                 itemCount: pages.length,
                 physics: const BouncingScrollPhysics(),
-                onPageChanged: (i) => setState(() => _index = i),
+                onPageChanged: (i) {
+                  if (_index != i) {
+                    setState(() => _index = i);
+                  }
+                },
                 itemBuilder: (_, i) => _OnboardPage(data: pages[i]),
               ),
             ),
@@ -101,7 +129,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               children: List.generate(
                 pages.length,
                 (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: _kMediumAnim,
                   curve: Curves.easeOutCubic,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   height: 8,
@@ -129,21 +157,30 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed: () {
-                    if (isLast) {
-                      _finish();
-                    } else {
-                      _controller.nextPage(
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeOutCubic,
-                      );
-                    }
-                  },
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      isLast ? "Mulai Pakai TemanAman" : "Lanjut",
-                      key: ValueKey(isLast),
+                  onPressed: _isProcessing
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          if (isLast) {
+                            _finish();
+                          } else {
+                            _controller.nextPage(
+                              duration: _kMediumAnim,
+                              curve: Curves.easeOutCubic,
+                            );
+                          }
+                        },
+                  child: Semantics(
+                    button: true,
+                    label: isLast
+                        ? "Mulai menggunakan TemanAman"
+                        : "Lanjut ke halaman berikutnya",
+                    child: AnimatedSwitcher(
+                      duration: _kFastAnim,
+                      child: Text(
+                        isLast ? "Mulai Pakai TemanAman" : "Lanjut",
+                        key: ValueKey(isLast),
+                      ),
                     ),
                   ),
                 ),
@@ -176,7 +213,7 @@ class _OnboardPage extends StatelessWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.85, end: 1),
-            duration: const Duration(milliseconds: 500),
+            duration: _OnboardingPageState._kSlowAnim,
             curve: Curves.easeOutBack,
             builder: (_, scale, child) =>
                 Transform.scale(scale: scale, child: child),
@@ -186,10 +223,13 @@ class _OnboardPage extends StatelessWidget {
                 color: scheme.primaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                data.icon,
-                size: 56,
-                color: scheme.onPrimaryContainer,
+              child: Semantics(
+                label: data.title,
+                child: Icon(
+                  data.icon,
+                  size: 56,
+                  color: scheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
