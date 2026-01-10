@@ -22,9 +22,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   static const _kFastAnim = Duration(milliseconds: 200);
   static const _kMediumAnim = Duration(milliseconds: 350);
-  static const _kSlowAnim = Duration(milliseconds: 500);
 
-  final pages = const [
+  final List<_OnboardData> pages = const [
     _OnboardData(
       title: "Kamu tidak sendirian 💜",
       description:
@@ -110,8 +109,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
             Expanded(
               child: PageView.builder(
                 controller: _controller,
-                itemCount: pages.length,
                 physics: const BouncingScrollPhysics(),
+                itemCount: pages.length,
                 onPageChanged: (i) {
                   if (_index != i) {
                     setState(() => _index = i);
@@ -170,17 +169,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                             );
                           }
                         },
-                  child: Semantics(
-                    button: true,
-                    label: isLast
-                        ? "Mulai menggunakan TemanAman"
-                        : "Lanjut ke halaman berikutnya",
-                    child: AnimatedSwitcher(
-                      duration: _kFastAnim,
-                      child: Text(
-                        isLast ? "Mulai Pakai TemanAman" : "Lanjut",
-                        key: ValueKey(isLast),
-                      ),
+                  child: AnimatedSwitcher(
+                    duration: _kFastAnim,
+                    child: Text(
+                      isLast ? "Mulai Pakai TemanAman" : "Lanjut",
+                      key: ValueKey(isLast),
                     ),
                   ),
                 ),
@@ -200,7 +193,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 // =====================================================
 class _OnboardPage extends StatelessWidget {
   final _OnboardData data;
-  const _OnboardPage({required this.data});
+
+  _OnboardPage({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +207,7 @@ class _OnboardPage extends StatelessWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.85, end: 1),
-            duration: _OnboardingPageState._kSlowAnim,
+            duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutBack,
             builder: (_, scale, child) =>
                 Transform.scale(scale: scale, child: child),
@@ -223,13 +217,10 @@ class _OnboardPage extends StatelessWidget {
                 color: scheme.primaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: Semantics(
-                label: data.title,
-                child: Icon(
-                  data.icon,
-                  size: 56,
-                  color: scheme.onPrimaryContainer,
-                ),
+              child: Icon(
+                data.icon,
+                size: 56,
+                color: scheme.onPrimaryContainer,
               ),
             ),
           ),
