@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'api/teman_aman_api.dart';
 
 class SmokeTestPage extends StatefulWidget {
@@ -30,7 +31,6 @@ class _SmokeTestPageState extends State<SmokeTestPage> {
       );
     });
 
-    // auto scroll
     Future.delayed(const Duration(milliseconds: 50), () {
       if (_scroll.hasClients) {
         _scroll.animateTo(
@@ -40,6 +40,38 @@ class _SmokeTestPageState extends State<SmokeTestPage> {
         );
       }
     });
+  }
+
+  String _exportText() {
+    final buffer = StringBuffer();
+    buffer.writeln("=== TemanAman API Smoke Test Log ===");
+    buffer.writeln("User ID : $userId");
+    buffer.writeln("Exported: ${DateTime.now().toIso8601String()}");
+    buffer.writeln("----------------------------------");
+
+    for (final l in logs.reversed) {
+      buffer.writeln(
+        "[${l.time.toIso8601String()}] "
+        "[${l.type.name.toUpperCase()}] "
+        "${l.message}",
+      );
+    }
+
+    return buffer.toString();
+  }
+
+  Future<void> exportLog() async {
+    if (logs.isEmpty) return;
+
+    final text = _exportText();
+    await Clipboard.setData(ClipboardData(text: text));
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Log berhasil disalin ke clipboard"),
+      ),
+    );
   }
 
   Future<void> runFlow() async {
@@ -63,14 +95,12 @@ class _SmokeTestPageState extends State<SmokeTestPage> {
       final state = await api.getRoomState(rid);
       addLog(
         "Room messages count: ${(state["messages"] as List).length}",
-        type: LogType.info,
       );
 
       addLog("Ending room...");
       final deleted = await api.endRoom(roomId: rid, userId: userId);
       addLog("Room ended (deleted=$deleted)", type: LogType.success);
 
-      // verify deletion
       try {
         await api.getRoomState(rid);
         addLog("WARN: room still exists (unexpected)", type: LogType.warn);
@@ -92,31 +122,33 @@ class _SmokeTestPageState extends State<SmokeTestPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Smoke Test • TemanAman API"),
+        actions: [
+          IconButton(
+            tooltip: "Export log",
+            onPressed: logs.isEmpty ? null : exportLog,
+            icon: const Icon(Icons.upload_file_rounded),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // =====================
-            // HEADER
-            // =====================
             Text(
               "API Flow Test",
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 6),
             Text(
-              "Menguji lifecycle: create room → send message → get state → end room",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              "create room → send message → get state → end room",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
 
-            // =====================
-            // ACTION BUTTON
-            // =====================
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -134,9 +166,6 @@ class _SmokeTestPageState extends State<SmokeTestPage> {
 
             const SizedBox(height: 16),
 
-            // =====================
-            // LOG VIEW
-            // =====================
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(12),
@@ -221,7 +250,6 @@ class _LogTile extends StatelessWidget {
               "[${item.time.toIso8601String().substring(11, 19)}] ${item.message}",
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontFamily: "monospace",
-                    color: scheme.onSurface,
                   ),
             ),
           ),
