@@ -15,13 +15,17 @@ class OnboardingPage extends StatefulWidget {
   State<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> {
+class _OnboardingPageState extends State<OnboardingPage>
+    with SingleTickerProviderStateMixin {
   final PageController _controller = PageController();
   int _index = 0;
   bool _isProcessing = false;
 
   static const _kFastAnim = Duration(milliseconds: 200);
   static const _kMediumAnim = Duration(milliseconds: 350);
+
+  late final AnimationController _bgAnimController;
+  late final Animation<double> _bgAnim;
 
   final List<_OnboardData> pages = const [
     _OnboardData(
@@ -50,6 +54,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+
+    _bgAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+
+    _bgAnim = CurvedAnimation(
+      parent: _bgAnimController,
+      curve: Curves.easeInOut,
+    );
+  }
+
   Future<void> _finish() async {
     if (_isProcessing) return;
     _isProcessing = true;
@@ -68,6 +87,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void dispose() {
     _controller.dispose();
+    _bgAnimController.dispose();
     super.dispose();
   }
 
@@ -77,112 +97,170 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final isLast = _index == pages.length - 1;
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // =====================
-            // SKIP BUTTON
-            // =====================
-            Padding(
-              padding: AppTokens.pagePadding,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: AnimatedOpacity(
-                  duration: _kFastAnim,
-                  opacity: isLast ? 0 : 1,
-                  child: TextButton(
-                    onPressed: isLast
-                        ? null
-                        : () {
-                            HapticFeedback.selectionClick();
-                            _finish();
-                          },
-                    child: const Text("Lewati"),
+      body: Stack(
+        children: [
+          // =====================================================
+          // BACKGROUND GRADIENT (DECORATIVE)
+          // =====================================================
+          AnimatedBuilder(
+            animation: _bgAnim,
+            builder: (_, __) {
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      scheme.primaryContainer.withOpacity(0.25),
+                      scheme.surface,
+                      scheme.secondaryContainer.withOpacity(0.25),
+                    ],
+                    stops: [
+                      0,
+                      0.5 + (_bgAnim.value * 0.1),
+                      1,
+                    ],
                   ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
 
-            // =====================
-            // PAGE VIEW
-            // =====================
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                physics: const BouncingScrollPhysics(),
-                itemCount: pages.length,
-                onPageChanged: (i) {
-                  if (_index != i) {
-                    setState(() => _index = i);
-                  }
-                },
-                itemBuilder: (_, i) => _OnboardPage(data: pages[i]),
-              ),
-            ),
+          // =====================================================
+          // DECORATIVE BLOBS (PURE UI)
+          // =====================================================
+          const _DecorativeBlobs(),
 
-            // =====================
-            // INDICATOR
-            // =====================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                pages.length,
-                (i) => AnimatedContainer(
-                  duration: _kMediumAnim,
-                  curve: Curves.easeOutCubic,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 8,
-                  width: _index == i ? 24 : 8,
-                  decoration: BoxDecoration(
-                    color: _index == i
-                        ? scheme.primary
-                        : scheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: AppTokens.s16),
-
-            // =====================
-            // ACTION BUTTON
-            // =====================
-            Padding(
-              padding: AppTokens.pagePadding,
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: _isProcessing
-                      ? null
-                      : () {
-                          HapticFeedback.lightImpact();
-                          if (isLast) {
-                            _finish();
-                          } else {
-                            _controller.nextPage(
-                              duration: _kMediumAnim,
-                              curve: Curves.easeOutCubic,
-                            );
-                          }
-                        },
-                  child: AnimatedSwitcher(
-                    duration: _kFastAnim,
-                    child: Text(
-                      isLast ? "Mulai Pakai TemanAman" : "Lanjut",
-                      key: ValueKey(isLast),
+          // =====================================================
+          // MAIN CONTENT
+          // =====================================================
+          SafeArea(
+            child: Column(
+              children: [
+                // =====================
+                // SKIP BUTTON
+                // =====================
+                Padding(
+                  padding: AppTokens.pagePadding,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: AnimatedOpacity(
+                      duration: _kFastAnim,
+                      opacity: isLast ? 0 : 1,
+                      child: TextButton(
+                        onPressed: isLast
+                            ? null
+                            : () {
+                                HapticFeedback.selectionClick();
+                                _finish();
+                              },
+                        child: const Text("Lewati"),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: AppTokens.s20),
-          ],
-        ),
+                // =====================
+                // PAGE VIEW
+                // =====================
+                Expanded(
+                  child: PageView.builder(
+                    controller: _controller,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: pages.length,
+                    onPageChanged: (i) {
+                      if (_index != i) {
+                        setState(() => _index = i);
+                      }
+                    },
+                    itemBuilder: (_, i) => AnimatedSlide(
+                      duration: _kMediumAnim,
+                      offset: Offset(i == _index ? 0 : 0.02, 0),
+                      child: AnimatedOpacity(
+                        duration: _kMediumAnim,
+                        opacity: i == _index ? 1 : 0.4,
+                        child: _OnboardPage(data: pages[i]),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // =====================
+                // INDICATOR
+                // =====================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    pages.length,
+                    (i) => AnimatedContainer(
+                      duration: _kMediumAnim,
+                      curve: Curves.easeOutCubic,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 8,
+                      width: _index == i ? 24 : 8,
+                      decoration: BoxDecoration(
+                        color: _index == i
+                            ? scheme.primary
+                            : scheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppTokens.s16),
+
+                // =====================
+                // ACTION BUTTON
+                // =====================
+                Padding(
+                  padding: AppTokens.pagePadding,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: _isProcessing
+                          ? null
+                          : () {
+                              HapticFeedback.lightImpact();
+                              if (isLast) {
+                                _finish();
+                              } else {
+                                _controller.nextPage(
+                                  duration: _kMediumAnim,
+                                  curve: Curves.easeOutCubic,
+                                );
+                              }
+                            },
+                      child: AnimatedSwitcher(
+                        duration: _kFastAnim,
+                        child: Text(
+                          isLast ? "Mulai Pakai TemanAman" : "Lanjut",
+                          key: ValueKey(isLast),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // =====================
+                // FOOTER TEXT (SUBTLE)
+                // =====================
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppTokens.s12),
+                  child: Text(
+                    "TemanAman • Ruang aman digital",
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -194,7 +272,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 class _OnboardPage extends StatelessWidget {
   final _OnboardData data;
 
-  _OnboardPage({required this.data});
+  const _OnboardPage({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +294,13 @@ class _OnboardPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: scheme.primaryContainer,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary.withOpacity(0.25),
+                    blurRadius: 24,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
               ),
               child: Icon(
                 data.icon,
@@ -240,6 +325,55 @@ class _OnboardPage extends StatelessWidget {
                 ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// =====================================================
+// DECORATIVE BLOBS WIDGET (UI ONLY)
+// =====================================================
+class _DecorativeBlobs extends StatelessWidget {
+  const _DecorativeBlobs();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned(
+            top: -80,
+            left: -80,
+            child: _Blob(color: scheme.primary.withOpacity(0.15), size: 220),
+          ),
+          Positioned(
+            bottom: -100,
+            right: -100,
+            child:
+                _Blob(color: scheme.secondary.withOpacity(0.12), size: 260),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Blob extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _Blob({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
       ),
     );
   }
