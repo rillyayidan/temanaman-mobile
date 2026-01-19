@@ -3,6 +3,7 @@ import '../api/education_api.dart';
 import '../ui/app_tokens.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final unescape = HtmlUnescape();
 
@@ -48,6 +49,21 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
       });
     }
   }
+
+  Future<void> _openLink(String? url) async {
+  if (url == null || url.isEmpty) return;
+
+  final uri = Uri.tryParse(url);
+  if (uri == null) return;
+
+  if (!await launchUrl(
+    uri,
+    mode: LaunchMode.externalApplication,
+  )) {
+    debugPrint("Gagal membuka URL: $url");
+  }
+}
+
 
   // -----------------------------
   // Human-friendly date formatter
@@ -181,7 +197,7 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
                     // 3️⃣ INFO CALLOUT (INI TEMPAT YANG BENAR)
                     _InfoCallout(
                       icon: Icons.info_outline,
-                      title: "Catatan Penting",
+                      title: "Catatan Penting!",
                       message:
                           "Informasi ini bersifat edukatif dan tidak menggantikan bantuan profesional. "
                           "Jika kamu membutuhkan bantuan segera, gunakan menu Layanan Bantuan.",
@@ -189,23 +205,35 @@ class _EducationDetailPageState extends State<EducationDetailPage> {
 
                     const SizedBox(height: AppTokens.s16),
 
-                    // 4️⃣ BODY ARTIKEL (SATU KALI SAJA)
                     _ArticleCard(
                       child: Html(
                         data: unescape.convert(data!.body),
+
+                        // 👉 INI YANG MEMBUAT LINK BISA DIKLIK
+                        onLinkTap: (url, attributes, element) {
+                          _openLink(url);
+                        },
+
                         style: {
                           "body": Style(
                             margin: Margins.zero,
                             padding: HtmlPaddings.zero,
                             fontSize: FontSize(
-                              Theme.of(context).textTheme.bodyLarge?.fontSize ??
-                                  14,
+                              Theme.of(context).textTheme.bodyLarge?.fontSize ?? 14,
                             ),
                             lineHeight: const LineHeight(1.6),
                             color: scheme.onSurface,
                           ),
+
                           "p": Style(margin: Margins.only(bottom: 12)),
                           "li": Style(margin: Margins.only(bottom: 8)),
+
+                          // 👉 STYLE LINK (UNDERLINE + BIRU)
+                          "a": Style(
+                            color: scheme.primary,
+                            textDecoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w500,
+                          ),
                         },
                       ),
                     ),
