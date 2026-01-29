@@ -1,123 +1,123 @@
 # TemanAman – Mobile Application (Flutter)
 
-TemanAman adalah aplikasi mobile berbasis Flutter yang dirancang untuk memberikan dukungan emosional awal, edukasi, serta akses layanan bantuan terkait isu kekerasan seksual. Aplikasi ini ditujukan terutama untuk Generasi Z dengan pendekatan antarmuka modern, aman, dan berorientasi pada privasi pengguna.
+TemanAman is a Flutter-based mobile application designed to provide initial emotional support, education, and access to assistance services related to sexual violence issues. This application is primarily aimed at Generation Z with a modern, safe, and privacy-oriented user interface approach.
 
-Catatan penting: TemanAman bukan pengganti psikolog, tenaga medis, maupun layanan darurat. Aplikasi ini berfungsi sebagai media edukasi dan dukungan awal.
+Important note: TemanAman is not a replacement for psychologists, medical professionals, or emergency services. This application serves as an educational medium and initial support tool.
 
 ---
 
-## Fitur Utama
+## Key Features
 
-Chatbot AI  
-Menyediakan respons edukatif, informatif, dan dukungan emosional awal melalui percakapan berbasis teks. Fitur ini dilengkapi dengan Auto Disclaimer untuk menjelaskan batasan kemampuan AI serta menegaskan bahwa respons yang diberikan bukan merupakan diagnosis atau keputusan profesional. Percakapan tidak disimpan secara permanen demi menjaga privasi pengguna.
+AI Chatbot  
+Provides educational, informative responses and initial emotional support through text-based conversations. This feature includes an Auto Disclaimer to explain the AI's limitations and emphasize that the responses provided are not professional diagnoses or decisions. Conversations are not permanently stored to maintain user privacy.
 
 Safe Mode  
-Fitur perlindungan tambahan yang dapat diaktifkan ketika pengguna merasa terancam atau privasinya berpotensi terganggu.
+An additional protection feature that can be activated when users feel threatened or their privacy is potentially compromised.
 
-Tombol “Butuh Bantuan” dan Layanan Bantuan  
-Menyediakan akses cepat ke kontak bantuan seperti telepon, WhatsApp, email, dan website. Dilengkapi filter region untuk menampilkan layanan yang relevan dan terpercaya.
+"Need Help" Button and Assistance Services  
+Provides quick access to support contacts such as phone, WhatsApp, email, and websites. Equipped with regional filters to display relevant and trusted services.
 
-Konten Edukasi  
-Menyajikan informasi pencegahan kekerasan seksual, hak dan perlindungan korban, serta materi edukatif lainnya dalam kategori yang terstruktur dan mudah dipahami.
+Educational Content  
+Presents information on sexual violence prevention, victim rights and protection, and other educational materials in structured and easy-to-understand categories.
 
-Kuis Interaktif  
-Digunakan untuk mengukur pemahaman pengguna terhadap materi edukasi. Sistem menampilkan pembahasan jawaban secara bertahap untuk meningkatkan pemahaman dan kesadaran pengguna.
+Interactive Quizzes  
+Used to assess users' understanding of educational materials. The system displays answer explanations progressively to improve user understanding and awareness.
 
-Privasi dan Transparansi  
-Menyediakan halaman Kebijakan Privasi, AI Disclaimer, dan Ketentuan Penggunaan sebagai bentuk komitmen terhadap perlindungan data pengguna.
+Privacy and Transparency  
+Provides Privacy Policy, AI Disclaimer, and Terms of Use pages as a commitment to user data protection.
 
 Onboarding  
-Ditampilkan satu kali saat aplikasi pertama kali digunakan untuk memperkenalkan fitur utama, batasan AI, Safe Mode, dan prinsip privasi TemanAman.
+Displayed once when the application is first used to introduce key features, AI limitations, Safe Mode, and TemanAman's privacy principles.
 
 ---
 
-## Teknologi yang Digunakan
+## Technologies Used
 
-Flutter sebagai framework pengembangan aplikasi mobile  
-Bahasa pemrograman Dart  
-REST API sebagai penghubung dengan backend TemanAman  
-Shared Preferences untuk penyimpanan lokal (onboarding dan state sederhana)  
-Material Design 3 untuk antarmuka pengguna  
-AI API (OpenAI) yang diakses melalui backend
+Flutter as the mobile application development framework  
+Dart programming language  
+REST API as a connector to the TemanAman backend  
+Shared Preferences for local storage (onboarding and simple state)  
+Material Design 3 for user interface  
+AI API (OpenAI) accessed through the backend
 
 ---
 
-## Arsitektur Aplikasi
+## Application Architecture
 
 Frontend (Flutter Mobile)  
-Menangani antarmuka pengguna, navigasi, serta interaksi dengan fitur aplikasi.
+Handles user interface, navigation, and interaction with application features.
 
 Backend API  
-Mengelola proses Chat AI, konten edukasi, kuis, dan data layanan bantuan.
+Manages AI Chat processes, educational content, quizzes, and assistance service data.
 
 Admin Panel (Filament)  
-Digunakan untuk pengelolaan konten aplikasi secara terpusat oleh administrator.
+Used for centralized application content management by administrators.
 
 ---
 
-## Instalasi dan Menjalankan Aplikasi
+## Installation and Running the Application
 
 1. Clone repository
 ```bash
 git clone https://github.com/rillyayidan/teman_aman.git
 cd teman_aman
-````
+```
 
-2. Install dependency
+2. Install dependencies
 
 ```bash
 flutter pub get
 ```
 
-3. Jalankan aplikasi
+3. Run the application
 
 ```bash
 flutter run
 ```
 
-Pastikan Flutter SDK telah terpasang dan emulator atau perangkat fisik tersedia.
+Ensure that Flutter SDK is installed and an emulator or physical device is available.
 
 ---
 
-## Privasi dan Keamanan
+## Privacy and Security
 
-Percakapan Chat AI tidak disimpan secara permanen.
-Konteks percakapan hanya dikelola sementara selama sesi berlangsung (in-memory).
-Ketika pengguna keluar dari ruang percakapan, konteks dan identitas ruang chat akan dihapus.
-Data diproses secara minimal sesuai kebutuhan fitur dan prinsip keamanan standar.
-
----
-
-## Tujuan Pengembangan
-
-TemanAman dikembangkan untuk:
-
-* Menyediakan media edukasi yang mudah diakses terkait kekerasan seksual
-* Memberikan dukungan emosional awal secara aman dan bertanggung jawab
-* Meningkatkan kesadaran dan pemahaman pengguna
-* Membantu pengguna menemukan layanan bantuan yang relevan
+AI Chat conversations are not permanently stored.
+Conversation context is only managed temporarily during the session (in-memory).
+When users exit the chat room, the context and chat room identity are deleted.
+Data is processed minimally according to feature requirements and standard security principles.
 
 ---
 
-## Konteks Akademik
+## Development Objectives
 
-Aplikasi ini dikembangkan sebagai bagian dari tugas akhir atau skripsi pada Program Studi Informatika, dengan fokus pada pengembangan aplikasi mobile berbasis AI yang memperhatikan aspek etika, privasi, dan keamanan pengguna.
+TemanAman was developed to:
+
+* Provide easily accessible educational media related to sexual violence
+* Provide initial emotional support safely and responsibly
+* Increase user awareness and understanding
+* Help users find relevant assistance services
 
 ---
 
-## Pengembang
+## Academic Context
 
-Nama: Muhammad Rilly Ayidan
-Aplikasi: TemanAman
+This application was developed as part of a final project or thesis in the Informatics Study Program, focusing on AI-based mobile application development that considers ethical, privacy, and user security aspects.
+
+---
+
+## Developer
+
+Name: Muhammad Rilly Ayidan
+Application: TemanAman
 Platform: Flutter Mobile
 
 ---
 
-## Lisensi
+## License
 
-Proyek ini dikembangkan untuk keperluan akademik dan non-komersial. Penggunaan lebih lanjut menyesuaikan dengan kebijakan pengembang.
+This project was developed for academic and non-commercial purposes. Further use is subject to the developer's policies.
 
-```
+---
 
-Tinggal bilang.
+Just say the word.
 ```
