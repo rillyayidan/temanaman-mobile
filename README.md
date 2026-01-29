@@ -118,6 +118,3 @@ Platform: Flutter Mobile
 This project was developed for academic and non-commercial purposes. Further use is subject to the developer's policies.
 
 ---
-
-Just say the word.
-```
