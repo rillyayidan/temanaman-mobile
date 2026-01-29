@@ -59,7 +59,7 @@ Used for centralized application content management by administrators.
 
 1. Clone repository
 ```bash
-git clone https://github.com/rillyayidan/teman_aman.git
+git clone https://github.com/rillyayidan/temanaman-mobile.git
 cd teman_aman
 ```
 
